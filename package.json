@@ -16,7 +16,8 @@
   },
   "dependencies": {
     "redis": "~0.7.0",
-    "hashish": "0.0.4"
+    "hashish": "0.0.4",
+    "coffee-script": ">= 1.2.0"
   },
   "devDependencies": {
     "jessie": "0.4.1"
