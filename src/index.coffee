@@ -36,13 +36,16 @@ Amico =
           .zadd("#{@namespace}:#{@followingKey}:#{fromId}", getEpoch(), toId)
           .zadd("#{@namespace}:#{@followersKey}:#{toId}", getEpoch(), fromId)
           .exec (err, replies) ->
+            console.log "Replies: #{replies.inspect}"
             self.isReciprocated fromId, toId, (result) ->
-              self.redis.multi()
-                .zadd("#{self.namespace}:#{self.reciprocatedKey}:#{fromId}", getEpoch(), toId)
-                .zadd("#{self.namespace}:#{self.reciprocatedKey}:#{toId}", getEpoch(), fromId)
-                .exec (err, replies) ->
-                  if callback?
-                    callback(true)
+              if result == true
+                self.redis.multi()
+                  .zadd("#{self.namespace}:#{self.reciprocatedKey}:#{fromId}", getEpoch(), toId)
+                  .zadd("#{self.namespace}:#{self.reciprocatedKey}:#{toId}", getEpoch(), fromId)
+                  .exec (err, replies) ->
+                    console.log "Replies: #{replies.inspect}"
+                    if callback?
+                      callback(true)
 
   unfollow: (fromId, toId, callback) ->
     if fromId == toId
