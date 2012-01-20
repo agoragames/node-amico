@@ -32,18 +32,17 @@ Amico =
         else
           return false
       else
-
-    @redis.multi()
-      .zadd("#{@namespace}:#{@followingKey}:#{fromId}", getEpoch(), toId)
-      .zadd("#{@namespace}:#{@followersKey}:#{toId}", getEpoch(), fromId)
-      .exec (err, replies) ->
-        self.isReciprocated fromId, toId, (result) ->
-          self.redis.multi()
-            .zadd("#{self.namespace}:#{self.reciprocatedKey}:#{fromId}", getEpoch(), toId)
-            .zadd("#{self.namespace}:#{self.reciprocatedKey}:#{toId}", getEpoch(), fromId)
-            .exec (err, replies) ->
-              if callback?
-                callback(true)
+        @redis.multi()
+          .zadd("#{@namespace}:#{@followingKey}:#{fromId}", getEpoch(), toId)
+          .zadd("#{@namespace}:#{@followersKey}:#{toId}", getEpoch(), fromId)
+          .exec (err, replies) ->
+            self.isReciprocated fromId, toId, (result) ->
+              self.redis.multi()
+                .zadd("#{self.namespace}:#{self.reciprocatedKey}:#{fromId}", getEpoch(), toId)
+                .zadd("#{self.namespace}:#{self.reciprocatedKey}:#{toId}", getEpoch(), fromId)
+                .exec (err, replies) ->
+                  if callback?
+                    callback(true)
 
   unfollow: (fromId, toId, callback) ->
     if fromId == toId
