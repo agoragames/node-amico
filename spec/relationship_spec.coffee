@@ -5,12 +5,16 @@ describe 'Amico relationships', ->
       Amico.redis.flushdb()
 
     it 'should allow you to follow', ->
-      Amico.follow(1,11)
       asyncTest ->
-        Amico.redis.zcard "#{Amico.namespace}:#{Amico.followingKey}:1", (err, score) ->
-          asyncDone(score)
-      whenDone (value) ->
-        expect(value).toEqual(1)
+        Amico.follow 1,11, (result) ->
+          asyncDone(result)
+
+      whenDone ->
+        asyncTest ->
+          Amico.redis.zcard "#{Amico.namespace}:#{Amico.followingKey}:1", (err, score) ->
+            asyncDone(score)
+        whenDone (value) ->
+          expect(value).toEqual(1)
 
       asyncTest ->
         Amico.redis.zcard "#{Amico.namespace}:#{Amico.followersKey}:11", (err, score) ->
