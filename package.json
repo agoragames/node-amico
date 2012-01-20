@@ -1,0 +1,24 @@
+{
+  "author": "Andrew Nordman <anordman@majorleaguegaming.com>",
+  "name": "amico",
+  "description": "Relationships (e.g. friendships) backed by Redis",
+  "version": "0.0.1",
+  "homepage": "http://github.com/agoragames/node-amico",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/agoragames/node-amico.git"
+  },
+  "scripts": {
+    "test": "jessie spec"
+  },
+  "engines": {
+    "node": "~0.6.6"
+  },
+  "dependencies": {
+    "redis": "~0.7.0",
+    "hashish": "0.0.4"
+  },
+  "devDependencies": {
+    "jessie": "0.4.1"
+  }
+}
