@@ -33,17 +33,17 @@ Amico =
           return false
       else
 
-      @redis.multi()
-        .zadd("#{@namespace}:#{@followingKey}:#{fromId}", getEpoch(), toId)
-        .zadd("#{@namespace}:#{@followersKey}:#{fromId}", getEpoch(), fromId)
-        .exec (err, replies) ->
-          self.isReciprocated fromId, toId, (result) ->
-            self.redis.multi()
-              .zadd("#{self.namespace}:#{self.reciprocatedKey}:#{fromId}", getEpoch(), toId)
-              .zadd("#{self.namespace}:#{self.reciprocatedKey}:#{toId}", getEpoch(), fromId)
-              .exec (err, replies) ->
-                if callback?
-                  callback(true)
+    @redis.multi()
+      .zadd("#{@namespace}:#{@followingKey}:#{fromId}", getEpoch(), toId)
+      .zadd("#{@namespace}:#{@followersKey}:#{toId}", getEpoch(), fromId)
+      .exec (err, replies) ->
+        self.isReciprocated fromId, toId, (result) ->
+          self.redis.multi()
+            .zadd("#{self.namespace}:#{self.reciprocatedKey}:#{fromId}", getEpoch(), toId)
+            .zadd("#{self.namespace}:#{self.reciprocatedKey}:#{toId}", getEpoch(), fromId)
+            .exec (err, replies) ->
+              if callback?
+                callback(true)
 
   unfollow: (fromId, toId, callback) ->
     if fromId == toId
@@ -51,7 +51,7 @@ Amico =
         callback(false)
       else
         return false
-    
+
     @redis.multi()
       .zrem("#{@namespace}:#{@followingKey}:#{fromId}", toId)
       .zrem("#{@namespace}:#{@followersKey}:#{toId}", fromId)
@@ -67,7 +67,7 @@ Amico =
         callback(false)
       else
         return false
-    
+
     @redis.multi()
       .zrem("#{@namespace}:#{@followingKey}:#{fromId}", toId)
       .zrem("#{@namespace}:#{@followingKey}:#{toId}", fromId)
@@ -102,7 +102,7 @@ Amico =
 
   reciprocated_count: (id, callback) ->
     @redis.zcard("#{@namespace}:#{@reciprocatedKey}:#{id}", callback)
-  
+
 
 
   isFollowing: (id, followingId, callback) ->
