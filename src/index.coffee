@@ -17,11 +17,8 @@ Amico =
    config.apply(@)
 
   follow: (fromId, toId, callback) ->
-    if fromId == toId
-      if callback?
-        callback(false)
-      else
-        return false
+    if fromId is toId
+        return callback(false)
 
     self = @
 
