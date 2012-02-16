@@ -1,4 +1,4 @@
-# Node-Amico 
+# Node-Amico ![Build Status](https://secure.travis-ci.org/agoragames/node-amico.png)](https://secure.travis-ci.org/agoragames/node-amico.png)
 
 This is a NodeJS port of [amico](https://github.com/agoragames/amico) using CoffeeScript.
 
