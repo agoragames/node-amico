@@ -18,7 +18,10 @@ Amico =
 
   follow: (fromId, toId, callback) ->
     if fromId is toId
+      if callback?
         return callback(false)
+      else
+        return false
 
     self = @
 
@@ -39,7 +42,6 @@ Amico =
                   .zadd("#{self.namespace}:#{self.reciprocatedKey}:#{fromId}", getEpoch(), toId)
                   .zadd("#{self.namespace}:#{self.reciprocatedKey}:#{toId}", getEpoch(), fromId)
                   .exec (err, replies) ->
-                    console.log "Replies: #{replies.inspect}"
                     if callback?
                       callback(true)
               else
@@ -47,9 +49,9 @@ Amico =
                   callback(true)
 
   unfollow: (fromId, toId, callback) ->
-    if fromId == toId
+    if fromId is toId
       if callback?
-        callback(false)
+        return callback(false)
       else
         return false
 
@@ -63,9 +65,9 @@ Amico =
           callback(true)
 
   block: (fromId, toId, callback) ->
-    if fromId == toId
+    if fromId is toId
       if callback?
-        callback(false)
+        return callback(false)
       else
         return false
 
@@ -89,39 +91,46 @@ Amico =
       callback = ->
     if fromId == toId
       return false
+  
+    @redis.zrem "#{@namespace}:#{@blockedKey}:#{fromId}", toId, (err) ->
+      if err?
+        callback(false)
+      else
+        callback(true)
 
-    @redis.zrem("#{@namespace}:#{@blockedKey}:#{fromId}", toId, callback)
+  followingCount: (id, callback) ->
+    @redis.zcard "#{@namespace}:#{@followingKey}:#{id}", (err, count) ->
+      callback(count)
 
-  following_count: (id, callback) ->
-    @redis.zcard("#{@namespace}:#{@followingKey}:#{id}", callback)
+  followersCount: (id, callback) ->
+    @redis.zcard "#{@namespace}:#{@followersKey}:#{id}", (err, count) ->
+      callback(count)
 
-  followers_count: (id, callback) ->
-    @redis.zcard("#{@namespace}:#{@followersKey}:#{id}", callback)
+  blockedCount: (id, callback) ->
+    @redis.zcard "#{@namespace}:#{@blockedKey}:#{id}", (err, count) ->
+      callback(count)
 
-  blocked_count: (id, callback) ->
-    @redis.zcard("#{@namespace}:#{@blockedKey}:#{id}", callback)
-
-  reciprocated_count: (id, callback) ->
-    @redis.zcard("#{@namespace}:#{@reciprocatedKey}:#{id}", callback)
-
-
+  reciprocatedCount: (id, callback) ->
+    @redis.zcard "#{@namespace}:#{@reciprocatedKey}:#{id}", (err, count) ->
+      callback(count)
 
   isFollowing: (id, followingId, callback) ->
     @redis.zscore "#{@namespace}:#{@followingKey}:#{id}", followingId, (err, score) ->
-      callback((score != null))
+      callback(score?)
 
   isFollower: (id, followerId, callback) ->
     @redis.zscore "#{@namespace}:#{@followersKey}:#{id}", followerId, (err, score) ->
-      callback((score != null))
+      callback(score?)
 
   isBlocked: (id, blockedId, callback) ->
     @redis.zscore "#{@namespace}:#{@blockedKey}:#{id}", blockedId, (err, score) ->
-      callback((score != null))
+      callback(score?)
 
   isReciprocated: (fromId, toId, callback) ->
-    @isFollowing fromId, toId, (err, result) =>
+    self = @
+    @isFollowing fromId, toId, (result) ->
       if result == true
-        @isFollowing toId, fromId, (err, result) ->
+        self.isFollowing toId, fromId, (result) ->
           callback(result)
       else
         callback(false)
@@ -138,7 +147,7 @@ Amico =
       callback = options
       options = {}
 
-    @members("#{@namespace}:#{@followingKey}:#{id}", options, callback)
+    @members("#{@namespace}:#{@followersKey}:#{id}", options, callback)
 
   blocked: (id, options, callback) ->
     if !callback?
@@ -193,15 +202,16 @@ Amico =
       callback(Math.ceil(card / pageSize))
 
   members: (key, options, callback) ->
+
     if options?
-      options = Hash.merge(Hash(@defaultOptions), Hash(options))
+      options = Hash.merge(@defaultOptions(), options)
     else
-      options = @defaultOptions
+      options = @defaultOptions()
 
     if options.page < 1
       options.page = 1
 
-    @totalPages (pages) ->
+    @totalPages key, options.pageSize, (pages) =>
       if options.page > pages
         options.page = pages
 
@@ -211,8 +221,9 @@ Amico =
       if startingOffset < 0
         startingOffset = 0
 
-      endingOffset = (startingOffset + options.pageSize)
+      endingOffset = (startingOffset + options.pageSize) - 1
 
-      @redis.zrevrange(key, startingOffset, endingOffset, false, callback)
+      @redis.zrevrange key, startingOffset, endingOffset, (err, results) ->
+        callback(results)
 
 module.exports = Amico
