@@ -8,6 +8,7 @@
     "type": "git",
     "url": "git://github.com/agoragames/node-amico.git"
   },
+  "main": "./lib/index",
   "scripts": {
     "test": "make test"
   },
