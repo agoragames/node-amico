@@ -164,28 +164,28 @@ Amico =
 
     @members("#{@namespace}:#{@reciprocatedKey}:#{scope}:#{id}", options, callback)
 
-  following_page_count: (id, pageSize, scope, callback) ->
+  followingPageCount: (id, pageSize, scope, callback) ->
     if !callback?
       callback = pageSize
       pageSize = @pageSize
 
     @totalPages("#{@namespace}:#{@followingKey}:#{scope}:#{id}", pageSize, callback)
 
-  followers_page_count: (id, pageSize, scope, callback) ->
+  followersPageCount: (id, pageSize, scope, callback) ->
     if !callback?
       callback = pageSize
       pageSize = @pageSize
 
     @totalPages("#{@namespace}:#{@followersKey}:#{scope}:#{id}", pageSize, callback)
 
-  blocked_page_count: (id, pageSize, scope, callback) ->
+  blockedPageCount: (id, pageSize, scope, callback) ->
     if !callback?
       callback = pageSize
       pageSize = @pageSize
 
     @totalPages("#{@namespace}:#{@blockedKey}:#{scope}:#{id}", pageSize, callback)
 
-  reciprocated_page_count: (id, pageSize, scope, callback) ->
+  reciprocatedPageCount: (id, pageSize, scope, callback) ->
     if !callback?
       callback = pageSize
       pageSize = @pageSize

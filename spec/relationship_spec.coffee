@@ -224,3 +224,32 @@ describe 'Amico relationships', ->
         Amico.blockedCount 1, Amico.scopeKey, (count) ->
           count.should.eql(1)
           done()
+
+  describe 'Amico#followingPageCount', ->
+    it 'should return the correct count', (done) ->
+      Amico.follow 1, 11, Amico.scopeKey, ->        
+        Amico.followingPageCount 1, Amico.pageSize, Amico.scopeKey, (count) ->          
+          count.should.eql(1)
+          done()
+
+  describe 'Amico#followersPageCount', ->
+    it 'should return the correct count', (done) ->
+      Amico.follow 1, 11, Amico.scopeKey, ->        
+        Amico.followersPageCount 11, Amico.pageSize, Amico.scopeKey, (count) ->          
+          count.should.eql(1)
+          done()
+
+  describe 'Amico#blockedPageCount', ->
+    it 'should return the correct count', (done) ->
+      Amico.block 1, 11, Amico.scopeKey, ->        
+        Amico.blockedPageCount 1, Amico.pageSize, Amico.scopeKey, (count) ->          
+          count.should.eql(1)
+          done()
+
+  describe 'Amico#reciprocatedPageCount', ->
+    it 'should return the correct count', (done) ->
+      Amico.follow 1, 11, Amico.scopeKey, ->
+        Amico.follow 11, 1, Amico.scopeKey, ->   
+          Amico.reciprocatedPageCount 1, Amico.pageSize, Amico.scopeKey, (count) ->          
+            count.should.eql(1)
+            done()
