@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.0.4 
+
+* Added scope key to various calls
+* 0.0.4 is API incompatible with previous releases!
+
 ## 0.0.3 
 
 * Update `package.json` with 'main' property

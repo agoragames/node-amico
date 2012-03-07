@@ -2,7 +2,7 @@
   "author": "Andrew Nordman <anordman@majorleaguegaming.com>",
   "name": "amico",
   "description": "Relationships (e.g. friendships) backed by Redis",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "homepage": "http://github.com/agoragames/node-amico",
   "repository": {
     "type": "git",
