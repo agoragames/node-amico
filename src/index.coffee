@@ -137,59 +137,27 @@ Amico =
         callback(false)
 
   following: (id, options, scope, callback) ->
-    if !callback?
-      callback = options
-      options = {}
-
     @members("#{@namespace}:#{@followingKey}:#{scope}:#{id}", options, callback)
 
   followers: (id, options, scope, callback) ->
-    if !callback?
-      callback = options
-      options = {}
-
     @members("#{@namespace}:#{@followersKey}:#{scope}:#{id}", options, callback)
 
   blocked: (id, options, scope, callback) ->
-    if !callback?
-      callback = options
-      options = {}
-
     @members("#{@namespace}:#{@blockedKey}:#{scope}:#{id}", options, callback)
 
   reciprocated: (id, options, scope, callback) ->
-    if !callback?
-      callback = options
-      options = {}
-
     @members("#{@namespace}:#{@reciprocatedKey}:#{scope}:#{id}", options, callback)
 
   followingPageCount: (id, pageSize, scope, callback) ->
-    if !callback?
-      callback = pageSize
-      pageSize = @pageSize
-
     @totalPages("#{@namespace}:#{@followingKey}:#{scope}:#{id}", pageSize, callback)
 
   followersPageCount: (id, pageSize, scope, callback) ->
-    if !callback?
-      callback = pageSize
-      pageSize = @pageSize
-
     @totalPages("#{@namespace}:#{@followersKey}:#{scope}:#{id}", pageSize, callback)
 
   blockedPageCount: (id, pageSize, scope, callback) ->
-    if !callback?
-      callback = pageSize
-      pageSize = @pageSize
-
     @totalPages("#{@namespace}:#{@blockedKey}:#{scope}:#{id}", pageSize, callback)
 
   reciprocatedPageCount: (id, pageSize, scope, callback) ->
-    if !callback?
-      callback = pageSize
-      pageSize = @pageSize
-
     @totalPages("#{@namespace}:#{@reciprocatedKey}:#{scope}:#{id}", pageSize, callback)
 
   defaultOptions: ->
