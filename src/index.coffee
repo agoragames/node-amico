@@ -11,12 +11,13 @@ Amico =
   followersKey: 'followers'
   blockedKey: 'blocked'
   reciprocatedKey: 'reciprocated'
+  scopeKey: 'default'
   pageSize: 25
 
   configure: (config) ->
    config.apply(@)
 
-  follow: (fromId, toId, callback) ->
+  follow: (fromId, toId, scope = @scopeKey, callback) ->
     if fromId is toId
       if callback?
         return callback(false)
@@ -25,7 +26,7 @@ Amico =
 
     self = @
 
-    @isBlocked toId, fromId, (result) =>
+    @isBlocked toId, fromId, scope, (result) =>
       if result == true
         if callback?
           return callback(false)
@@ -33,14 +34,14 @@ Amico =
           return false
       else
         @redis.multi()
-          .zadd("#{@namespace}:#{@followingKey}:#{fromId}", getEpoch(), toId)
-          .zadd("#{@namespace}:#{@followersKey}:#{toId}", getEpoch(), fromId)
+          .zadd("#{@namespace}:#{@followingKey}:#{scope}:#{fromId}", getEpoch(), toId)
+          .zadd("#{@namespace}:#{@followersKey}:#{scope}:#{toId}", getEpoch(), fromId)
           .exec (err, replies) ->
-            self.isReciprocated fromId, toId, (result) ->
+            self.isReciprocated fromId, toId, scope, (result) ->
               if result == true
                 self.redis.multi()
-                  .zadd("#{self.namespace}:#{self.reciprocatedKey}:#{fromId}", getEpoch(), toId)
-                  .zadd("#{self.namespace}:#{self.reciprocatedKey}:#{toId}", getEpoch(), fromId)
+                  .zadd("#{self.namespace}:#{self.reciprocatedKey}:#{scope}:#{fromId}", getEpoch(), toId)
+                  .zadd("#{self.namespace}:#{self.reciprocatedKey}:#{scope}:#{toId}", getEpoch(), fromId)
                   .exec (err, replies) ->
                     if callback?
                       callback(true)
@@ -48,7 +49,7 @@ Amico =
                 if callback?
                   callback(true)
 
-  unfollow: (fromId, toId, callback) ->
+  unfollow: (fromId, toId, scope = @scopeKey, callback) ->
     if fromId is toId
       if callback?
         return callback(false)
@@ -56,15 +57,15 @@ Amico =
         return false
 
     @redis.multi()
-      .zrem("#{@namespace}:#{@followingKey}:#{fromId}", toId)
-      .zrem("#{@namespace}:#{@followersKey}:#{toId}", fromId)
-      .zrem("#{@namespace}:#{@reciprocatedKey}:#{fromId}", toId)
-      .zrem("#{@namespace}:#{@reciprocatedKey}:#{toId}", fromId)
+      .zrem("#{@namespace}:#{@followingKey}:#{scope}:#{fromId}", toId)
+      .zrem("#{@namespace}:#{@followersKey}:#{scope}:#{toId}", fromId)
+      .zrem("#{@namespace}:#{@reciprocatedKey}:#{scope}:#{fromId}", toId)
+      .zrem("#{@namespace}:#{@reciprocatedKey}:#{scope}:#{toId}", fromId)
       .exec (err, replies) ->
         if callback?
           callback(true)
 
-  block: (fromId, toId, callback) ->
+  block: (fromId, toId, scope = @scopeKey, callback) ->
     if fromId is toId
       if callback?
         return callback(false)
@@ -72,13 +73,13 @@ Amico =
         return false
 
     @redis.multi()
-      .zrem("#{@namespace}:#{@followingKey}:#{fromId}", toId)
-      .zrem("#{@namespace}:#{@followingKey}:#{toId}", fromId)
-      .zrem("#{@namespace}:#{@followersKey}:#{fromId}", toId)
-      .zrem("#{@namespace}:#{@followersKey}:#{toId}", fromId)
-      .zrem("#{@namespace}:#{@reciprocatedKey}:#{fromId}", toId)
-      .zrem("#{@namespace}:#{@reciprocatedKey}:#{toId}", fromId)
-      .zadd("#{@namespace}:#{@blockedKey}:#{fromId}", getEpoch(), toId)
+      .zrem("#{@namespace}:#{@followingKey}:#{scope}:#{fromId}", toId)
+      .zrem("#{@namespace}:#{@followingKey}:#{scope}:#{toId}", fromId)
+      .zrem("#{@namespace}:#{@followersKey}:#{scope}:#{fromId}", toId)
+      .zrem("#{@namespace}:#{@followersKey}:#{scope}:#{toId}", fromId)
+      .zrem("#{@namespace}:#{@reciprocatedKey}:#{scope}:#{fromId}", toId)
+      .zrem("#{@namespace}:#{@reciprocatedKey}:#{scope}:#{toId}", fromId)
+      .zadd("#{@namespace}:#{@blockedKey}:#{scope}:#{fromId}", getEpoch(), toId)
       .exec (err, replies) ->
         if err?
           if callback?
@@ -86,110 +87,94 @@ Amico =
         else if callback?
           callback(true)
 
-  unblock: (fromId, toId, callback) ->
+  unblock: (fromId, toId, scope = @scopeKey, callback) ->
     if !callback?
       callback = ->
     if fromId == toId
       return false
   
-    @redis.zrem "#{@namespace}:#{@blockedKey}:#{fromId}", toId, (err) ->
+    @redis.zrem "#{@namespace}:#{@blockedKey}:#{scope}:#{fromId}", toId, (err) ->
       if err?
         callback(false)
       else
         callback(true)
 
-  followingCount: (id, callback) ->
-    @redis.zcard "#{@namespace}:#{@followingKey}:#{id}", (err, count) ->
+  followingCount: (id, scope = @scopeKey, callback) ->
+    @redis.zcard "#{@namespace}:#{@followingKey}:#{scope}:#{id}", (err, count) ->
       callback(count)
 
-  followersCount: (id, callback) ->
-    @redis.zcard "#{@namespace}:#{@followersKey}:#{id}", (err, count) ->
+  followersCount: (id, scope = @scopeKey, callback) ->
+    @redis.zcard "#{@namespace}:#{@followersKey}:#{scope}:#{id}", (err, count) ->
       callback(count)
 
-  blockedCount: (id, callback) ->
-    @redis.zcard "#{@namespace}:#{@blockedKey}:#{id}", (err, count) ->
+  blockedCount: (id, scope = @scopeKey, callback) ->
+    @redis.zcard "#{@namespace}:#{@blockedKey}:#{scope}:#{id}", (err, count) ->
       callback(count)
 
-  reciprocatedCount: (id, callback) ->
-    @redis.zcard "#{@namespace}:#{@reciprocatedKey}:#{id}", (err, count) ->
+  reciprocatedCount: (id, scope = @scopeKey, callback) ->
+    @redis.zcard "#{@namespace}:#{@reciprocatedKey}:#{scope}:#{id}", (err, count) ->
       callback(count)
 
-  isFollowing: (id, followingId, callback) ->
-    @redis.zscore "#{@namespace}:#{@followingKey}:#{id}", followingId, (err, score) ->
+  isFollowing: (id, followingId, scope = @scopeKey, callback) ->
+    @redis.zscore "#{@namespace}:#{@followingKey}:#{scope}:#{id}", followingId, (err, score) ->
       callback(score?)
 
-  isFollower: (id, followerId, callback) ->
-    @redis.zscore "#{@namespace}:#{@followersKey}:#{id}", followerId, (err, score) ->
+  isFollower: (id, followerId, scope = @scopeKey, callback) ->
+    @redis.zscore "#{@namespace}:#{@followersKey}:#{scope}:#{id}", followerId, (err, score) ->
       callback(score?)
 
-  isBlocked: (id, blockedId, callback) ->
-    @redis.zscore "#{@namespace}:#{@blockedKey}:#{id}", blockedId, (err, score) ->
+  isBlocked: (id, blockedId, scope = @scopeKey, callback) ->
+    @redis.zscore "#{@namespace}:#{@blockedKey}:#{scope}:#{id}", blockedId, (err, score) ->
       callback(score?)
 
-  isReciprocated: (fromId, toId, callback) ->
+  isReciprocated: (fromId, toId, scope = @scopeKey, callback) ->
     self = @
-    @isFollowing fromId, toId, (result) ->
+    @isFollowing fromId, toId, scope, (result) ->
       if result == true
-        self.isFollowing toId, fromId, (result) ->
+        self.isFollowing toId, fromId, scope, (result) ->
           callback(result)
       else
         callback(false)
 
-  following: (id, options, callback) ->
-    if !callback?
-      callback = options
-      options = {}
+  following: (id, {pageOptions, scope}, callback) ->
+    pageOptions ?= @defaultOptions()
+    scope ?= @scopeKey
+    @members("#{@namespace}:#{@followingKey}:#{scope}:#{id}", pageOptions, callback)
 
-    @members("#{@namespace}:#{@followingKey}:#{id}", options, callback)
+  followers: (id, {pageOptions, scope}, callback) ->
+    pageOptions ?= @defaultOptions()
+    scope ?= @scopeKey
+    @members("#{@namespace}:#{@followersKey}:#{scope}:#{id}", pageOptions, callback)
 
-  followers: (id, options, callback) ->
-    if !callback?
-      callback = options
-      options = {}
+  blocked: (id, {pageOptions, scope}, callback) ->
+    pageOptions ?= @defaultOptions()
+    scope ?= @scopeKey
+    @members("#{@namespace}:#{@blockedKey}:#{scope}:#{id}", pageOptions, callback)
 
-    @members("#{@namespace}:#{@followersKey}:#{id}", options, callback)
+  reciprocated: (id, {pageOptions, scope}, callback) ->
+    pageOptions ?= @defaultOptions()
+    scope ?= @scopeKey
+    @members("#{@namespace}:#{@reciprocatedKey}:#{scope}:#{id}", pageOptions, callback)
 
-  blocked: (id, options, callback) ->
-    if !callback?
-      callback = options
-      options = {}
+  followingPageCount: (id, {pageSize, scope}, callback) ->
+    pageSize ?= @pageSize
+    scope ?= @scopeKey
+    @totalPages("#{@namespace}:#{@followingKey}:#{scope}:#{id}", pageSize, callback)
 
-    @members("#{@namespace}:#{@blockedKey}:#{id}", options, callback)
+  followersPageCount: (id, {pageSize, scope}, callback) ->
+    pageSize ?= @pageSize
+    scope ?= @scopeKey
+    @totalPages("#{@namespace}:#{@followersKey}:#{scope}:#{id}", pageSize, callback)
 
-  reciprocated: (id, options, callback) ->
-    if !callback?
-      callback = options
-      options = {}
+  blockedPageCount: (id, {pageSize, scope}, callback) ->
+    pageSize ?= @pageSize
+    scope ?= @scopeKey
+    @totalPages("#{@namespace}:#{@blockedKey}:#{scope}:#{id}", pageSize, callback)
 
-    @members("#{@namespace}:#{@reciprocatedKey}:#{id}", options, callback)
-
-  following_page_count: (id, pageSize, callback) ->
-    if !callback?
-      callback = pageSize
-      pageSize = @pageSize
-
-    @totalPages("#{@namespace}:#{@followingKey}:#{id}", pageSize, callback)
-
-  followers_page_count: (id, pageSize, callback) ->
-    if !callback?
-      callback = pageSize
-      pageSize = @pageSize
-
-    @totalPages("#{@namespace}:#{@followersKey}:#{id}", pageSize, callback)
-
-  blocked_page_count: (id, pageSize, callback) ->
-    if !callback?
-      callback = pageSize
-      pageSize = @pageSize
-
-    @totalPages("#{@namespace}:#{@blockedKey}:#{id}", pageSize, callback)
-
-  reciprocated_page_count: (id, pageSize, callback) ->
-    if !callback?
-      callback = pageSize
-      pageSize = @pageSize
-
-    @totalPages("#{@namespace}:#{@reciprocatedKey}:#{id}", pageSize, callback)
+  reciprocatedPageCount: (id, {pageSize, scope}, callback) ->
+    pageSize ?= @pageSize
+    scope ?= @scopeKey
+    @totalPages("#{@namespace}:#{@reciprocatedKey}:#{scope}:#{id}", pageSize, callback)
 
   defaultOptions: ->
     {
@@ -202,7 +187,6 @@ Amico =
       callback(Math.ceil(card / pageSize))
 
   members: (key, options, callback) ->
-
     if options?
       options = Hash.merge(@defaultOptions(), options)
     else
