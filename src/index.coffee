@@ -17,7 +17,7 @@ Amico =
   configure: (config) ->
    config.apply(@)
 
-  follow: (fromId, toId, scope, callback) ->
+  follow: (fromId, toId, scope = @scopeKey, callback) ->
     if fromId is toId
       if callback?
         return callback(false)
@@ -49,7 +49,7 @@ Amico =
                 if callback?
                   callback(true)
 
-  unfollow: (fromId, toId, scope, callback) ->
+  unfollow: (fromId, toId, scope = @scopeKey, callback) ->
     if fromId is toId
       if callback?
         return callback(false)
@@ -65,7 +65,7 @@ Amico =
         if callback?
           callback(true)
 
-  block: (fromId, toId, scope, callback) ->
+  block: (fromId, toId, scope = @scopeKey, callback) ->
     if fromId is toId
       if callback?
         return callback(false)
@@ -87,7 +87,7 @@ Amico =
         else if callback?
           callback(true)
 
-  unblock: (fromId, toId, scope, callback) ->
+  unblock: (fromId, toId, scope = @scopeKey, callback) ->
     if !callback?
       callback = ->
     if fromId == toId
@@ -99,35 +99,35 @@ Amico =
       else
         callback(true)
 
-  followingCount: (id, scope, callback) ->
+  followingCount: (id, scope = @scopeKey, callback) ->
     @redis.zcard "#{@namespace}:#{@followingKey}:#{scope}:#{id}", (err, count) ->
       callback(count)
 
-  followersCount: (id, scope, callback) ->
+  followersCount: (id, scope = @scopeKey, callback) ->
     @redis.zcard "#{@namespace}:#{@followersKey}:#{scope}:#{id}", (err, count) ->
       callback(count)
 
-  blockedCount: (id, scope, callback) ->
+  blockedCount: (id, scope = @scopeKey, callback) ->
     @redis.zcard "#{@namespace}:#{@blockedKey}:#{scope}:#{id}", (err, count) ->
       callback(count)
 
-  reciprocatedCount: (id, scope, callback) ->
+  reciprocatedCount: (id, scope = @scopeKey, callback) ->
     @redis.zcard "#{@namespace}:#{@reciprocatedKey}:#{scope}:#{id}", (err, count) ->
       callback(count)
 
-  isFollowing: (id, followingId, scope, callback) ->
+  isFollowing: (id, followingId, scope = @scopeKey, callback) ->
     @redis.zscore "#{@namespace}:#{@followingKey}:#{scope}:#{id}", followingId, (err, score) ->
       callback(score?)
 
-  isFollower: (id, followerId, scope, callback) ->
+  isFollower: (id, followerId, scope = @scopeKey, callback) ->
     @redis.zscore "#{@namespace}:#{@followersKey}:#{scope}:#{id}", followerId, (err, score) ->
       callback(score?)
 
-  isBlocked: (id, blockedId, scope, callback) ->
+  isBlocked: (id, blockedId, scope = @scopeKey, callback) ->
     @redis.zscore "#{@namespace}:#{@blockedKey}:#{scope}:#{id}", blockedId, (err, score) ->
       callback(score?)
 
-  isReciprocated: (fromId, toId, scope, callback) ->
+  isReciprocated: (fromId, toId, scope = @scopeKey, callback) ->
     self = @
     @isFollowing fromId, toId, scope, (result) ->
       if result == true
@@ -136,28 +136,44 @@ Amico =
       else
         callback(false)
 
-  following: (id, options, scope, callback) ->
-    @members("#{@namespace}:#{@followingKey}:#{scope}:#{id}", options, callback)
+  following: (id, {pageOptions, scope}, callback) ->
+    pageOptions ?= @defaultOptions()
+    scope ?= @scopeKey
+    @members("#{@namespace}:#{@followingKey}:#{scope}:#{id}", pageOptions, callback)
 
-  followers: (id, options, scope, callback) ->
-    @members("#{@namespace}:#{@followersKey}:#{scope}:#{id}", options, callback)
+  followers: (id, {pageOptions, scope}, callback) ->
+    pageOptions ?= @defaultOptions()
+    scope ?= @scopeKey
+    @members("#{@namespace}:#{@followersKey}:#{scope}:#{id}", pageOptions, callback)
 
-  blocked: (id, options, scope, callback) ->
-    @members("#{@namespace}:#{@blockedKey}:#{scope}:#{id}", options, callback)
+  blocked: (id, {pageOptions, scope}, callback) ->
+    pageOptions ?= @defaultOptions()
+    scope ?= @scopeKey
+    @members("#{@namespace}:#{@blockedKey}:#{scope}:#{id}", pageOptions, callback)
 
-  reciprocated: (id, options, scope, callback) ->
-    @members("#{@namespace}:#{@reciprocatedKey}:#{scope}:#{id}", options, callback)
+  reciprocated: (id, {pageOptions, scope}, callback) ->
+    pageOptions ?= @defaultOptions()
+    scope ?= @scopeKey
+    @members("#{@namespace}:#{@reciprocatedKey}:#{scope}:#{id}", pageOptions, callback)
 
-  followingPageCount: (id, pageSize, scope, callback) ->
+  followingPageCount: (id, {pageSize, scope}, callback) ->
+    pageSize ?= @pageSize
+    scope ?= @scopeKey
     @totalPages("#{@namespace}:#{@followingKey}:#{scope}:#{id}", pageSize, callback)
 
-  followersPageCount: (id, pageSize, scope, callback) ->
+  followersPageCount: (id, {pageSize, scope}, callback) ->
+    pageSize ?= @pageSize
+    scope ?= @scopeKey
     @totalPages("#{@namespace}:#{@followersKey}:#{scope}:#{id}", pageSize, callback)
 
-  blockedPageCount: (id, pageSize, scope, callback) ->
+  blockedPageCount: (id, {pageSize, scope}, callback) ->
+    pageSize ?= @pageSize
+    scope ?= @scopeKey
     @totalPages("#{@namespace}:#{@blockedKey}:#{scope}:#{id}", pageSize, callback)
 
-  reciprocatedPageCount: (id, pageSize, scope, callback) ->
+  reciprocatedPageCount: (id, {pageSize, scope}, callback) ->
+    pageSize ?= @pageSize
+    scope ?= @scopeKey
     @totalPages("#{@namespace}:#{@reciprocatedKey}:#{scope}:#{id}", pageSize, callback)
 
   defaultOptions: ->
@@ -171,7 +187,6 @@ Amico =
       callback(Math.ceil(card / pageSize))
 
   members: (key, options, callback) ->
-
     if options?
       options = Hash.merge(@defaultOptions(), options)
     else

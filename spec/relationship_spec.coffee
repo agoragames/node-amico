@@ -166,7 +166,14 @@ describe 'Amico relationships', ->
     it 'should return the correct list', (done) ->
       Amico.follow 1, 11, Amico.scopeKey, ->
         Amico.follow 1, 12, Amico.scopeKey, ->
-          Amico.following 1, Amico.defaultOptions, Amico.scopeKey, (results) ->
+          Amico.following 1, {pageOptions: Amico.defaultOptions(), scope: Amico.scopeKey}, (results) ->
+            results.should.eql(['12', '11'])
+            done()
+
+    it 'should return the correct list with minimal parameters', (done) ->
+      Amico.follow 1, 11, Amico.scopeKey, ->
+        Amico.follow 1, 12, Amico.scopeKey, ->
+          Amico.following 1, {}, (results) ->
             results.should.eql(['12', '11'])
             done()
 
@@ -174,7 +181,14 @@ describe 'Amico relationships', ->
     it 'should return the correct list', (done) ->
       Amico.follow 1, 11, Amico.scopeKey, ->
         Amico.follow 12, 11, Amico.scopeKey, ->
-          Amico.followers 11, Amico.defaultOptions, Amico.scopeKey, (results) ->
+          Amico.followers 11, {pageOptions: Amico.defaultOptions(), scope: Amico.scopeKey}, (results) ->
+            results.should.eql(['12', '1'])
+            done()
+
+    it 'should return the correct list with minimal parameters', (done) ->
+      Amico.follow 1, 11, Amico.scopeKey, ->
+        Amico.follow 12, 11, Amico.scopeKey, ->
+          Amico.followers 11, {}, (results) ->
             results.should.eql(['12', '1'])
             done()
 
@@ -182,7 +196,14 @@ describe 'Amico relationships', ->
     it 'should return the correct list', (done) ->
       Amico.block 1, 11, Amico.scopeKey, ->
         Amico.block 1, 12, Amico.scopeKey,  ->
-          Amico.blocked 1, Amico.defaultOptions, Amico.scopeKey, (results) ->
+          Amico.blocked 1, {pageOptions: Amico.defaultOptions(), scope: Amico.scopeKey}, (results) ->
+            results.should.eql(['12', '11'])
+            done()
+
+    it 'should return the correct list with minimal parameters', (done) ->
+      Amico.block 1, 11, Amico.scopeKey, ->
+        Amico.block 1, 12, Amico.scopeKey,  ->
+          Amico.blocked 1, {}, (results) ->
             results.should.eql(['12', '11'])
             done()
 
@@ -192,7 +213,16 @@ describe 'Amico relationships', ->
         Amico.follow 11, 1, Amico.scopeKey, ->
           Amico.follow 1, 12, Amico.scopeKey, ->
             Amico.follow 12, 1, Amico.scopeKey, ->
-              Amico.reciprocated 1, Amico.defaultOptions, Amico.scopeKey, (results) ->
+              Amico.reciprocated 1, {pageOptions: Amico.defaultOptions(), scope: Amico.scopeKey}, (results) ->
+                results.should.eql(['12', '11'])
+                done()
+
+    it 'should return the correct list with minimal parameters', (done) ->
+      Amico.follow 1, 11, Amico.scopeKey, ->
+        Amico.follow 11, 1, Amico.scopeKey, ->
+          Amico.follow 1, 12, Amico.scopeKey, ->
+            Amico.follow 12, 1, Amico.scopeKey, ->
+              Amico.reciprocated 1, {}, (results) ->
                 results.should.eql(['12', '11'])
                 done()
 
@@ -228,21 +258,39 @@ describe 'Amico relationships', ->
   describe 'Amico#followingPageCount', ->
     it 'should return the correct count', (done) ->
       Amico.follow 1, 11, Amico.scopeKey, ->        
-        Amico.followingPageCount 1, Amico.pageSize, Amico.scopeKey, (count) ->          
+        Amico.followingPageCount 1, {pageSize: 1, scopeKey: Amico.scopeKey}, (count) ->          
+          count.should.eql(1)
+          done()
+
+    it 'should return the correct count with minimal parameters', (done) ->
+      Amico.follow 1, 11, Amico.scopeKey, ->        
+        Amico.followingPageCount 1, {}, (count) ->          
           count.should.eql(1)
           done()
 
   describe 'Amico#followersPageCount', ->
     it 'should return the correct count', (done) ->
       Amico.follow 1, 11, Amico.scopeKey, ->        
-        Amico.followersPageCount 11, Amico.pageSize, Amico.scopeKey, (count) ->          
+        Amico.followersPageCount 11, {pageSize: 1, scopeKey: Amico.scopeKey}, (count) ->          
+          count.should.eql(1)
+          done()
+
+    it 'should return the correct count with minimal parameters', (done) ->
+      Amico.follow 1, 11, Amico.scopeKey, ->        
+        Amico.followersPageCount 11, {}, (count) ->          
           count.should.eql(1)
           done()
 
   describe 'Amico#blockedPageCount', ->
     it 'should return the correct count', (done) ->
       Amico.block 1, 11, Amico.scopeKey, ->        
-        Amico.blockedPageCount 1, Amico.pageSize, Amico.scopeKey, (count) ->          
+        Amico.blockedPageCount 1, {pageSize: 1, scope: Amico.scopeKey}, (count) ->          
+          count.should.eql(1)
+          done()
+
+    it 'should return the correct count with minimal parameters', (done) ->
+      Amico.block 1, 11, Amico.scopeKey, ->        
+        Amico.blockedPageCount 1, {}, (count) ->          
           count.should.eql(1)
           done()
 
@@ -250,6 +298,13 @@ describe 'Amico relationships', ->
     it 'should return the correct count', (done) ->
       Amico.follow 1, 11, Amico.scopeKey, ->
         Amico.follow 11, 1, Amico.scopeKey, ->   
-          Amico.reciprocatedPageCount 1, Amico.pageSize, Amico.scopeKey, (count) ->          
+          Amico.reciprocatedPageCount 1, {pageSize: 1, scope: Amico.scopeKey}, (count) ->          
+            count.should.eql(1)
+            done()
+
+    it 'should return the correct count with minimal parameters', (done) ->
+      Amico.follow 1, 11, Amico.scopeKey, ->
+        Amico.follow 11, 1, Amico.scopeKey, ->   
+          Amico.reciprocatedPageCount 1, {}, (count) ->          
             count.should.eql(1)
             done()
